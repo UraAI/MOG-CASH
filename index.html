@@ -221,19 +221,18 @@
     
     <script>
         // ==================== CONFIGURATION ====================
-        // Replace this with your actual contract address from pump.fun!
-        const TOKEN_MINT_ADDRESS = "YOUR_MOG_CASH_MINT_ADDRESS_HERE"; 
+        // Pre-loaded with your exact Mog Cash address!
+        const TOKEN_MINT_ADDRESS = "BF5bAWwyWzqS8goGXkpE55vc7rzvxday5CjMbY79pump"; 
         // =======================================================
 
         let tokensHeld = 0; 
         let clickPower = 1; 
         let upgradeCost = 50;
-        let livePriceUsd = 0.00001; 
+        let livePriceUsd = 0.000001; 
         
-        // On-chain wallet verification stats
         let userPublicKey = null;
         let realTokenBalance = 0;
-        let powerMultiplier = 1.0; // Dynamic multiplier based on real wallet balance!
+        let powerMultiplier = 1.0; 
 
         const coin = document.getElementById('coin'); 
         const wrapper = document.getElementById('wrapper');
@@ -244,13 +243,13 @@
         const walletBtn = document.getElementById('wallet-btn');
         const multiplierTag = document.getElementById('multiplier-tag');
         
-        // Dynamically update the Pump.fun link
-        document.getElementById('buy-pump-link').href = `https://pump.fun/coin/${TOKEN_MINT_ADDRESS}`;
+        // Casing-safe exact link creation
+        document.getElementById('buy-pump-link').href = "https://pump.fun/coin/" + TOKEN_MINT_ADDRESS;
 
         // Fetch real-time token price from DexScreener API
         async function fetchLiveTokenData() {
-            if (TOKEN_MINT_ADDRESS === "YOUR_MOG_CASH_MINT_ADDRESS_HERE") return;
             try {
+                // DexScreener is case-insensitive for search, but we query using the direct token endpoint
                 const response = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${TOKEN_MINT_ADDRESS}`);
                 const data = await response.json();
                 
@@ -272,18 +271,16 @@
             }
         }
 
-        // Connect Wallet Function (Supports Phantom, Solflare, etc. via standard window.solana)
         async function connectSolanaWallet() {
             if ("solana" in window) {
                 try {
                     const provider = window.solana;
-                    if (provider.isPhantom) {
+                    if (provider.isPhantom || provider) {
                         const response = await provider.connect();
                         userPublicKey = response.publicKey.toString();
                         walletBtn.innerText = `Connected: ${userPublicKey.slice(0, 4)}...${userPublicKey.slice(-4)}`;
                         walletBtn.style.background = "linear-gradient(135deg, #10b981, #047857)";
                         
-                        // Instantly query on-chain holdings
                         await fetchOnChainTokenBalance();
                     }
                 } catch (err) {
@@ -294,9 +291,8 @@
             }
         }
 
-        // Directly queries the Solana Mainnet JSON RPC to read the user's Token Balance
         async function fetchOnChainTokenBalance() {
-            if (!userPublicKey || TOKEN_MINT_ADDRESS === "BF5bAWwyWzqS8goGXkpE55vc7rzvxday5CjMbY79pump" return;
+            if (!userPublicKey) return;
             
             try {
                 const rpcUrl = "https://api.mainnet-beta.solana.com";
@@ -309,7 +305,7 @@
                         method: "getTokenAccountsByOwner",
                         params: [
                             userPublicKey,
-                            { mint: "BF5bAWwyWzqS8goGXkpE55vc7rzvxday5CjMbY79pump" },
+                            { mint: TOKEN_MINT_ADDRESS },
                             { encoding: "jsonParsed" }
                         ]
                     })
@@ -323,12 +319,9 @@
                     realTokenBalance = 0;
                 }
 
-                // Apply Multiplier logic: +10% click power multiplier for every 1 million real tokens held
-                // Formula: multiplier = 1.0 + (tokens / 1,000,000) * 0.1
+                // +10% boost for every 1 million tokens held
                 powerMultiplier = 1.0 + (realTokenBalance / 1000000) * 0.1;
-                
-                // Cap multiplier at a reasonable limit, say 5x max boost, to keep game progression exciting
-                if (powerMultiplier > 5.0) powerMultiplier = 5.0;
+                if (powerMultiplier > 5.0) powerMultiplier = 5.0; // Max 5x limit
 
                 if (realTokenBalance > 0) {
                     multiplierTag.style.display = "inline-block";
@@ -354,7 +347,6 @@
         });
         
         function handleTap(clickX, clickY) {
-            // Apply both click power AND the active on-chain power multiplier!
             let baseGained = clickPower;
             let finalGained = Math.round(baseGained * powerMultiplier);
             
@@ -424,7 +416,6 @@
                 balanceDisplay.innerText = `$${currentUsdValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
             }
 
-            // Displays the upgraded power showing both base and boosted stats if they own tokens
             let activePower = Math.round(clickPower * powerMultiplier);
             powerDisplay.innerText = activePower === clickPower ? `${clickPower}` : `${activePower} (${clickPower} base)`; 
             
@@ -433,12 +424,9 @@
         }
         
         fetchLiveTokenData();
-        setInterval(fetchLiveTokenData, 10000); // Check DexScreener price
-        
-        // Re-scan balance every 30 seconds if wallet is connected so they get credit right after buying!
+        setInterval(fetchLiveTokenData, 10000); 
         setInterval(fetchOnChainTokenBalance, 30000); 
         updateUI();
     </script>
 </body>
 </html>
-
