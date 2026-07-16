@@ -3,42 +3,440 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mog Cash - To The Moon!</title>
+    <title>Mog Cash - Tap & Earn</title>
     <style>
-        body { background: linear-gradient(135deg, #1e1b4b, #311042); color: #fff; font-family: 'Arial', sans-serif; text-align: center; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
-        h1 { color: #f59e0b; font-size: 3rem; margin-bottom: 5px; text-shadow: 0 0 10px rgba(245, 158, 11, 0.5); }
-        .subtitle { font-style: italic; color: #a78bfa; margin-bottom: 30px; }
-        .score-container { background: rgba(255, 255, 255, 0.1); padding: 15px 30px; border-radius: 15px; backdrop-filter: blur(5px); border: 1px solid rgba(255, 255, 255, 0.2); font-size: 1.5rem; margin-bottom: 30px; }
-        #balance { color: #4ade80; font-weight: bold; font-size: 2rem; }
-        .coin-btn { background: radial-gradient(circle, #fcd34d 0%, #d97706 100%); border: 8px solid #b45309; width: 200px; height: 200px; border-radius: 50%; cursor: pointer; font-size: 5rem; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 25px rgba(217, 119, 6, 0.4); transition: transform 0.1s ease; outline: none; }
-        .coin-btn:active { transform: scale(0.95); }
-        .shop { margin-top: 40px; width: 100%; max-width: 400px; }
-        .upgrade-btn { background-color: #2563eb; color: white; border: none; padding: 15px; width: 100%; border-radius: 10px; font-size: 1.1rem; cursor: pointer; font-weight: bold; transition: background 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
-        .upgrade-btn:disabled { background-color: #4b5563; cursor: not-allowed; }
+        body { 
+            background: linear-gradient(135deg, #0b091a, #1a0b2e); 
+            color: #fff; 
+            font-family: 'Arial', sans-serif; 
+            text-align: center; 
+            margin: 0; 
+            padding: 0; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            min-height: 100vh;
+            overflow-x: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        /* Live Price Ticker at Top */
+        .ticker-wrap {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(15, 11, 30, 0.95);
+            border-bottom: 2px solid #f59e0b;
+            padding: 10px 0;
+            font-size: 0.9rem;
+            font-weight: bold;
+            z-index: 100;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            backdrop-filter: blur(5px);
+        }
+        .price-up { color: #4ade80; }
+        .price-down { color: #ef4444; }
+
+        .game-container {
+            margin-top: 80px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+            width: 100%;
+            max-width: 480px;
+            box-sizing: border-box;
+        }
+
+        h1 { 
+            color: #f59e0b; 
+            font-size: 3rem; 
+            margin: 0 0 5px 0; 
+            text-shadow: 0 0 20px rgba(245, 158, 11, 0.6); 
+        }
+        
+        .subtitle { font-style: italic; color: #a78bfa; margin-bottom: 20px; font-weight: bold; font-size: 0.9rem; }
+        
+        .score-container { 
+            background: rgba(255, 255, 255, 0.05); 
+            padding: 15px 30px; 
+            border-radius: 20px; 
+            backdrop-filter: blur(10px); 
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+            font-size: 1.4rem; 
+            margin-bottom: 20px; 
+            width: 80%;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        #balance { color: #4ade80; font-weight: bold; font-size: 2rem; text-shadow: 0 0 10px rgba(74, 222, 128, 0.5); }
+        
+        /* Web3 Actions Panel */
+        .web3-panel {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            width: 90%;
+        }
+        .web3-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            text-decoration: none;
+        }
+        .btn-buy {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+        .btn-buy:hover { transform: translateY(-2px); }
+        .btn-wallet {
+            background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+            color: white;
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+        }
+        .btn-wallet:hover { transform: translateY(-2px); }
+
+        .coin-wrapper {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        
+        .coin-btn { 
+            background: radial-gradient(circle, #fcd34d 0%, #d97706 100%); 
+            border: 8px solid #b45309; 
+            width: 180px; 
+            height: 180px; 
+            border-radius: 50%; 
+            cursor: pointer; 
+            font-size: 5rem; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            box-shadow: 0 15px 35px rgba(217, 119, 6, 0.5); 
+            transition: transform 0.05s ease; 
+            outline: none; 
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(0px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(2px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            90% { transform: translate(2px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+        .shake-active { animation: shake 0.15s; }
+        .coin-btn:active { transform: scale(0.92) rotate(-3deg); }
+        
+        .floating-text {
+            position: absolute;
+            font-weight: 900;
+            font-size: 1.8rem;
+            pointer-events: none;
+            animation: floatUp 0.8s ease-out forwards;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+            z-index: 10;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-120px) scale(0.8); opacity: 0; }
+        }
+        
+        .shop { margin-top: 15px; width: 90%; }
+        .upgrade-btn { 
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8); 
+            color: white; 
+            border: none; 
+            padding: 14px; 
+            width: 100%; 
+            border-radius: 12px; 
+            font-size: 1.1rem; 
+            cursor: pointer; 
+            font-weight: bold; 
+            transition: all 0.2s; 
+            box-shadow: 0 6px 15px rgba(29, 78, 216, 0.3); 
+        }
+        .upgrade-btn:active { transform: scale(0.98); }
+        .upgrade-btn:disabled { 
+            background: #374151; 
+            color: #9ca3af;
+            cursor: not-allowed; 
+            box-shadow: none;
+        }
     </style>
 </head>
 <body>
-    <h1>MOG CASH</h1>
-    <div class="subtitle">Community Driven | Bullish on MOG!</div>
-    <div class="score-container">
-        $MOG Balance: <span id="balance">0</span><br>
-        <small style="font-size: 0.9rem; color: #cbd5e1;">Mogger Power: +<span id="power">1</span> per tap</small>
+    <!-- Live Tracker Header Bar -->
+    <div class="ticker-wrap">
+        <span>MOG CASH LIVE: <span id="live-price">$0.000000</span></span>
+        <span>24H: <span id="live-change" class="price-up">0.00%</span></span>
     </div>
-    <button class="coin-btn" id="coin">🐂</button>
-    <div class="shop">
-        <h3>Boost Your Gains</h3>
-        <button class="upgrade-btn" id="upgrade-btn" onclick="buyUpgrade()">
-            Buy Shovel (Cost: <span id="upgrade-cost">50</span> $MOG)
-        </button>
+
+    <div class="game-container">
+        <h1>MOG CASH</h1>
+        <div class="subtitle">TAP THE BULL | ACCUMULATE THE BAG 🚀</div>
+        
+        <!-- Web3 panel to handle live actions -->
+        <div class="web3-panel">
+            <a href="#" id="buy-pump-link" target="_blank" class="web3-btn btn-buy">💰 Buy on Pump.fun</a>
+            <button onclick="connectSolanaWallet()" id="wallet-btn" class="web3-btn btn-wallet">🔌 Connect Wallet</button>
+        </div>
+
+        <div class="score-container">
+            Your Bag Value: <span id="balance">$0.00</span><br>
+            <small style="font-size: 0.9rem; color: #cbd5e1;">Base Power: +<span id="power">1</span> Token/tap</small><br>
+            <small id="multiplier-tag" style="font-size: 0.85rem; color: #a78bfa; font-weight: bold; display: none;">HODL Multiplier: 1.0x</small>
+        </div>
+        
+        <div class="coin-wrapper" id="wrapper">
+            <button class="coin-btn" id="coin">🐂</button>
+        </div>
+        
+        <div class="shop">
+            <button class="upgrade-btn" id="upgrade-btn" onclick="buyUpgrade()">
+                🚀 Upgrade Shovel (Cost: <span id="upgrade-cost">50</span> Tokens)
+            </button>
+        </div>
     </div>
+    
     <script>
-        let score = 0; let clickPower = 1; let upgradeCost = 50;
-        const coin = document.getElementById('coin'); const balanceDisplay = document.getElementById('balance');
-        const powerDisplay = document.getElementById('power'); const upgradeBtn = document.getElementById('upgrade-btn');
+        // ==================== CONFIGURATION ====================
+        // Replace this with your actual contract address from pump.fun!
+        const TOKEN_MINT_ADDRESS = "YOUR_MOG_CASH_MINT_ADDRESS_HERE"; 
+        // =======================================================
+
+        let tokensHeld = 0; 
+        let clickPower = 1; 
+        let upgradeCost = 50;
+        let livePriceUsd = 0.00001; 
+        
+        // On-chain wallet verification stats
+        let userPublicKey = null;
+        let realTokenBalance = 0;
+        let powerMultiplier = 1.0; // Dynamic multiplier based on real wallet balance!
+
+        const coin = document.getElementById('coin'); 
+        const wrapper = document.getElementById('wrapper');
+        const balanceDisplay = document.getElementById('balance');
+        const powerDisplay = document.getElementById('power'); 
+        const upgradeBtn = document.getElementById('upgrade-btn');
         const upgradeCostDisplay = document.getElementById('upgrade-cost');
-        coin.addEventListener('click', () => { score += clickPower; updateUI(); });
-        function buyUpgrade() { if (score >= upgradeCost) { score -= upgradeCost; clickPower += 1; upgradeCost = Math.round(upgradeCost * 1.5); updateUI(); } }
-        function updateUI() { balanceDisplay.innerText = score; powerDisplay.innerText = clickPower; upgradeCostDisplay.innerText = upgradeCost; upgradeBtn.disabled = (score < upgradeCost); }
+        const walletBtn = document.getElementById('wallet-btn');
+        const multiplierTag = document.getElementById('multiplier-tag');
+        
+        // Dynamically update the Pump.fun link
+        document.getElementById('buy-pump-link').href = `https://pump.fun/coin/${TOKEN_MINT_ADDRESS}`;
+
+        // Fetch real-time token price from DexScreener API
+        async function fetchLiveTokenData() {
+            if (TOKEN_MINT_ADDRESS === "YOUR_MOG_CASH_MINT_ADDRESS_HERE") return;
+            try {
+                const response = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${TOKEN_MINT_ADDRESS}`);
+                const data = await response.json();
+                
+                if (data.pairs && data.pairs.length > 0) {
+                    const primaryPair = data.pairs[0];
+                    livePriceUsd = parseFloat(primaryPair.priceUsd) || 0;
+                    const change24h = parseFloat(primaryPair.priceChange.h24) || 0;
+                    
+                    document.getElementById('live-price').innerText = `$${livePriceUsd.toFixed(8)}`;
+                    
+                    const changeEl = document.getElementById('live-change');
+                    changeEl.innerText = `${change24h >= 0 ? '+' : ''}${change24h.toFixed(2)}%`;
+                    changeEl.className = change24h >= 0 ? 'price-up' : 'price-down';
+                    
+                    updateUI();
+                }
+            } catch (error) {
+                console.error("Error fetching live coin stats: ", error);
+            }
+        }
+
+        // Connect Wallet Function (Supports Phantom, Solflare, etc. via standard window.solana)
+        async function connectSolanaWallet() {
+            if ("solana" in window) {
+                try {
+                    const provider = window.solana;
+                    if (provider.isPhantom) {
+                        const response = await provider.connect();
+                        userPublicKey = response.publicKey.toString();
+                        walletBtn.innerText = `Connected: ${userPublicKey.slice(0, 4)}...${userPublicKey.slice(-4)}`;
+                        walletBtn.style.background = "linear-gradient(135deg, #10b981, #047857)";
+                        
+                        // Instantly query on-chain holdings
+                        await fetchOnChainTokenBalance();
+                    }
+                } catch (err) {
+                    console.warn("Wallet connection rejected/failed:", err);
+                }
+            } else {
+                alert("Solana wallet not found! Please open this game inside the Phantom/Solflare in-app browser or install the extension.");
+            }
+        }
+
+        // Directly queries the Solana Mainnet JSON RPC to read the user's Token Balance
+        async function fetchOnChainTokenBalance() {
+            if (!userPublicKey || TOKEN_MINT_ADDRESS === "YOUR_MOG_CASH_MINT_ADDRESS_HERE") return;
+            
+            try {
+                const rpcUrl = "https://api.mainnet-beta.solana.com";
+                const response = await fetch(rpcUrl, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        jsonrpc: "2.0",
+                        id: 1,
+                        method: "getTokenAccountsByOwner",
+                        params: [
+                            userPublicKey,
+                            { mint: TOKEN_MINT_ADDRESS },
+                            { encoding: "jsonParsed" }
+                        ]
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.result && data.result.value && data.result.value.length > 0) {
+                    const info = data.result.value[0].account.data.parsed.info;
+                    realTokenBalance = parseFloat(info.tokenAmount.uiAmount) || 0;
+                } else {
+                    realTokenBalance = 0;
+                }
+
+                // Apply Multiplier logic: +10% click power multiplier for every 1 million real tokens held
+                // Formula: multiplier = 1.0 + (tokens / 1,000,000) * 0.1
+                powerMultiplier = 1.0 + (realTokenBalance / 1000000) * 0.1;
+                
+                // Cap multiplier at a reasonable limit, say 5x max boost, to keep game progression exciting
+                if (powerMultiplier > 5.0) powerMultiplier = 5.0;
+
+                if (realTokenBalance > 0) {
+                    multiplierTag.style.display = "inline-block";
+                    multiplierTag.innerText = `HODL Multiplier: ${powerMultiplier.toFixed(2)}x (+${((powerMultiplier - 1) * 100).toFixed(0)}% Boost!)`;
+                } else {
+                    multiplierTag.style.display = "none";
+                }
+                
+                updateUI();
+            } catch (err) {
+                console.error("On-chain scanning error: ", err);
+            }
+        }
+
+        coin.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            handleTap(e.touches[0].clientX, e.touches[0].clientY);
+        });
+
+        coin.addEventListener('mousedown', (e) => {
+            if (e.type === 'mousedown' && 'ontouchstart' in window) return;
+            handleTap(e.clientX, e.clientY);
+        });
+        
+        function handleTap(clickX, clickY) {
+            // Apply both click power AND the active on-chain power multiplier!
+            let baseGained = clickPower;
+            let finalGained = Math.round(baseGained * powerMultiplier);
+            
+            let isCrit = Math.random() < 0.10; 
+            
+            if (isCrit) {
+                finalGained = finalGained * 5;
+                triggerCritEffect();
+            }
+            
+            tokensHeld += finalGained;
+            updateUI();
+            spawnFloatingText(clickX, clickY, finalGained, isCrit);
+        }
+        
+        function triggerCritEffect() {
+            coin.classList.add('shake-active');
+            setTimeout(() => {
+                coin.classList.remove('shake-active');
+            }, 150);
+        }
+        
+        function spawnFloatingText(x, y, amount, isCrit) {
+            const float = document.createElement('div');
+            float.classList.add('floating-text');
+            
+            if (isCrit) {
+                float.innerText = `🔥 CRIT +${amount}!`;
+                float.style.color = '#ef4444'; 
+                float.style.fontSize = '2.2rem';
+            } else {
+                float.innerText = `+${amount}`;
+                float.style.color = '#f59e0b'; 
+            }
+            
+            const rect = wrapper.getBoundingClientRect();
+            let posX = x ? (x - rect.left) : (rect.width / 2);
+            let posY = y ? (y - rect.top) : (rect.height / 2);
+            
+            float.style.left = `${posX - 25}px`;
+            float.style.top = `${posY - 30}px`;
+            
+            wrapper.appendChild(float);
+            
+            setTimeout(() => {
+                float.remove();
+            }, 800);
+        }
+        
+        function buyUpgrade() { 
+            if (tokensHeld >= upgradeCost) { 
+                tokensHeld -= upgradeCost; 
+                clickPower += 1; 
+                upgradeCost = Math.round(upgradeCost * 1.6); 
+                updateUI(); 
+            } 
+        }
+        
+        function updateUI() { 
+            let currentUsdValue = tokensHeld * livePriceUsd;
+            
+            if (currentUsdValue === 0) {
+                balanceDisplay.innerText = "$0.00";
+            } else if (currentUsdValue < 0.01) {
+                balanceDisplay.innerText = `$${currentUsdValue.toFixed(6)}`;
+            } else {
+                balanceDisplay.innerText = `$${currentUsdValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            }
+
+            // Displays the upgraded power showing both base and boosted stats if they own tokens
+            let activePower = Math.round(clickPower * powerMultiplier);
+            powerDisplay.innerText = activePower === clickPower ? `${clickPower}` : `${activePower} (${clickPower} base)`; 
+            
+            upgradeCostDisplay.innerText = upgradeCost.toLocaleString(); 
+            upgradeBtn.disabled = (tokensHeld < upgradeCost); 
+        }
+        
+        fetchLiveTokenData();
+        setInterval(fetchLiveTokenData, 10000); // Check DexScreener price
+        
+        // Re-scan balance every 30 seconds if wallet is connected so they get credit right after buying!
+        setInterval(fetchOnChainTokenBalance, 30000); 
         updateUI();
     </script>
 </body>
