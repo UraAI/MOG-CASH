@@ -627,3 +627,39 @@
     </script>
 </body>
 </html>
+// --- Initial Setup (Define these in your state initialization) ---
+const state = {
+    currentLane: 1,      // Assuming 0, 1, 2
+    targetX: 0,
+    velocityX: 0         // Essential for the physics calculation
+};
+
+const CONFIG = {
+    laneWidth: 4,        // Distance between lanes
+    stiffness: 100,      // Increase for snappier movement
+    damping: 10          // Increase to reduce "bounciness"
+};
+
+// --- Inside your update(deltaTime) loop ---
+function update(deltaTime) {
+    // 1. Determine Target
+    state.targetX = (state.currentLane - 1) * CONFIG.laneWidth;
+
+    // 2. Physics Calculation (Damped Spring)
+    const displacement = playerGroup.position.x - state.targetX;
+    
+    // F = -k*x - c*v
+    const springForce = -CONFIG.stiffness * displacement;
+    const dampingForce = -CONFIG.damping * state.velocityX;
+    
+    // Apply acceleration
+    state.velocityX += (springForce + dampingForce) * deltaTime;
+    
+    // Update position
+    playerGroup.position.x += state.velocityX * deltaTime;
+
+    // 3. Dynamic Tilt
+    // We base tilt on velocity so the character leans into the movement
+    // and returns to 0 tilt when velocity reaches 0
+    playerGroup.rotation.z = state.velocityX * 0.03; 
+}
