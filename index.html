@@ -296,7 +296,7 @@
 
         // Directly queries the Solana Mainnet JSON RPC to read the user's Token Balance
         async function fetchOnChainTokenBalance() {
-            if (!userPublicKey || TOKEN_MINT_ADDRESS === "YOUR_MOG_CASH_MINT_ADDRESS_HERE") return;
+            if (!userPublicKey || TOKEN_MINT_ADDRESS === BF5bAWwyWzqS8goGXkpE55vc7rzvxday5CjMbY79pump) return;
             
             try {
                 const rpcUrl = "https://api.mainnet-beta.solana.com";
@@ -309,7 +309,7 @@
                         method: "getTokenAccountsByOwner",
                         params: [
                             userPublicKey,
-                            { mint: TOKEN_MINT_ADDRESS },
+                            { mint: BF5bAWwyWzqS8goGXkpE55vc7rzvxday5CjMbY79pump },
                             { encoding: "jsonParsed" }
                         ]
                     })
